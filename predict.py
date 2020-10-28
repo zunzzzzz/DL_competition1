@@ -1,63 +1,42 @@
-# import csv
-# import _pickle as pkl
-# import pandas as pd
-# import numpy as np
-# num_of_model = 4
-# # load from disk
-# hashvec = []
-# clf = []
-# y_test = []
-# df_test = pd.read_csv('./dataset/test.csv')
-# for i in range(num_of_model):
-#     hashvec_tmp = pkl.load(open('output/hashvec%d.pkl' % i, 'rb'))
-#     hashvec.append(hashvec_tmp)
-
-# for i in range(num_of_model):
-#     clf_tmp = pkl.load(open('output/clf-sgd%d.pkl' % i, 'rb'))
-#     clf.append(clf_tmp)
-
-
-# for i in range(num_of_model):
-#     y_test_tmp = clf[i].predict_proba(hashvec[i].transform(df_test['Page content']))[:,1]
-#     y_test.append(y_test_tmp)
-
-
-
-
-# # print(clf.predict(hashvec.transform(df_test['Page content']))[0])
-# with open('./output/output.csv', 'w', newline='') as csvfile:
-#     writer = csv.writer(csvfile)
-#     writer.writerow(['Id', 'Popularity'])
-#     for index, data in enumerate(y_test[0]):
-#         accu = 0
-#         for i in range(num_of_model):
-#             accu += y_test[i][index]
-#         average = accu / num_of_model
-#         writer.writerow([df_test['Id'][index], average])
-
-
 import csv
 import _pickle as pkl
 import pandas as pd
 import numpy as np
-num_of_model = 4
-# load from disk
+from preprocess import *
+from sklearn.preprocessing import StandardScaler
+from scipy.sparse import hstack
+
+
 df_test = pd.read_csv('./dataset/test.csv')
-hashvec_tmp = pkl.load(open('output/hashvec3.pkl' , 'rb'))
+df_feature = pd.read_csv('./dataset/feature_test.csv')
 
-clf_tmp = pkl.load(open('output/clf-sgd3.pkl', 'rb'))
-
-y_test_tmp = clf_tmp.predict_proba(hashvec_tmp.transform(df_test['Page content']))[:,1]
+X_feature = df_feature.to_numpy()
 
 
+# load hand-designed features
 
+# X_test = np.concatenate((X_len, X_title, X_img, X_weekend, X_href, X_iframe, X_time), axis=1)
 
+# hashvec = pkl.load(open('output/hashvec1000.pkl', 'rb'))
+clf = pkl.load(open('output/adv_clf.pkl', 'rb'))
+tfidf = pkl.load(open('output/adv_tfidf.pkl', 'rb'))
+# pipe = pkl.load(open('output/tfidf.pkl', 'rb'))
+clf_feature = pkl.load(open('output/svc.pkl', 'rb'))
+# X_test= np.concatenate((X_len, X_title, X_img, X_weekend), axis=1)
+# y_test = clf.predict_proba(X_test)[:,1]
+X_test = df_test['Page content']
+X_test = tfidf.transform(X_test)
+
+X_test_feature = X_feature
+
+# y_test = ((clf.predict_proba(X_test)[:,1]) + (clf_feature.predict_proba(X_test_feature)[:,1])) / 2
+y_test = (clf.predict_proba(X_test)[:,1])
 
 # print(clf.predict(hashvec.transform(df_test['Page content']))[0])
 with open('./output/output.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['Id', 'Popularity'])
-    for index, data in enumerate(y_test_tmp):
+    for index, data in enumerate(y_test):
         writer.writerow([df_test['Id'][index], data])
 
 
