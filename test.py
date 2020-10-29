@@ -28,7 +28,7 @@ print(X_feature.shape)
 
 
 X_train, X_val, y_train, y_val = train_test_split(
-    X, df['Popularity'], test_size=0.1, random_state=0)
+    X, df['Popularity'], test_size=0.03, random_state=0)
 
 
 
@@ -44,6 +44,6 @@ clf = SVC(probability=True, random_state=0, kernel='rbf')
 clf.fit(X_train, y_train)
 # clf = pkl.load(open('output/clf-svc.pkl', 'rb'))
 train_score = roc_auc_score(y_train, clf.predict_proba(X_train)[:,1])
-val_score = roc_auc_score(y_val, (clf_feature.predict_proba(X_val)[:,1] + clf_feature.predict_proba(X_val_transform)[:,1]) / 2)
+val_score = roc_auc_score(y_val, clf.predict_proba(X_val)[:,1])
 print('train_score = {}, val_score = {}'.format(train_score, val_score))
 pkl.dump(clf, open('output/svc.pkl', 'wb'))

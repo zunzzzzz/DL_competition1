@@ -29,40 +29,31 @@ df_feature = pd.read_csv('./dataset/feature.csv')
 
 
 
-# X, X_val, y, y_val = train_test_split(
-#     df['Page content'], df['Popularity'], test_size=0.3, random_state=0)
-# X_feature, X_feature_val, _, _ = train_test_split(
-#     df_feature, df['Popularity'], test_size=0.3, random_state=0)
-
 X, y = df['Page content'], df['Popularity']
 X_feature = df_feature
-# tfidf
-# tfidf = TfidfVectorizer(preprocessor=preprocessor, 
-#                     tokenizer=tokenizer_stem_nostop)
-# count vector 
-tfidf = TfidfVectorizer(preprocessor=preprocessor, 
-                    tokenizer=tokenizer_stem_nostop)
 
-# clf = SVC(probability=True, kernel='rbf')
+# count vector 
+tfidf = TfidfVectorizer(
+                preprocessor=preprocessor, 
+                tokenizer=tokenizer_stem_nostop)
 
 
 X = tfidf.fit_transform(X)
 X = hstack((X, X_feature))
 print(X.shape)
-# X_val = tfidf.transform(X_val)
-# X_val = hstack((X_val, X_feature_val))
 
-clf = SVC(probability=True, kernel='rbf')
+
+clf = LogisticRegression(solver = "liblinear")
 print('start fitting')
 clf.fit(X, y)
 print('finish fitting')
-train_score = roc_auc_score(y, clf.predict_proba(X)[:,1])
-# val_score = roc_auc_score(y_val, clf.predict_proba(X_val)[:,1])
 
 
-# print('train_score = {} val_score = {}'.format(train_score, val_score))
-print('train_score = {}'.format(train_score))
+scores = cross_val_score(estimator=clf, X=X, y=y, cv=5, scoring='roc_auc')
+print('%.3f (+/- %.3f)' % (scores.mean(), scores.std()))
+# print('with features: train_score = {} val_score = {}'.format(train_score, val_score))
+
 # dump to disk
-pkl.dump(clf, open('output/tfidf_svc.pkl', 'wb'))
-pkl.dump(tfidf, open('output/tfidf.pkl', 'wb'))
+# pkl.dump(clf, open('output/clf-content-feature-svc-test.pkl', 'wb'))
+# pkl.dump(tfidf, open('output/count-content-feature-test.pkl', 'wb'))
 
